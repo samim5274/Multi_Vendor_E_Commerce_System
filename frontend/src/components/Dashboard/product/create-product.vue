@@ -91,30 +91,35 @@
                         <div>
                             <label class="label">Discount Price (Optional)</label>
                             <input type="number" v-model="form.discount_price" class="input" placeholder="e.g BDT ৳ 400.00"/>
+                            <p class="error" v-if="errors.discount_price">{{ errors.discount_price[0] }}</p>
                         </div>
 
                         <!-- Minimum Stock -->
                         <div>
                             <label class="label">Minimum Stock Alert</label>
                             <input type="number" v-model="form.min_stock" class="input" placeholder="e.g 5 pcs"/>
+                            <p class="error" v-if="errors.min_stock">{{ errors.min_stock[0] }}</p>
                         </div>
 
                         <!-- Summary -->
                         <div>
                             <label class="label">Summary</label>
                             <input type="text" v-model="form.summary" class="input" placeholder="e.g Product Summary"/>
+                            <p class="error" v-if="errors.summary">{{ errors.summary[0] }}</p>
                         </div>
 
                         <!-- Description -->
                         <div>
                             <label class="label">Description</label>
                             <textarea v-model="form.description" class="input" placeholder="e.g Detailed product description"></textarea>
+                            <p class="error" v-if="errors.description">{{ errors.description[0] }}</p>
                         </div>
 
                         <!-- SLUG -->
                         <div>
                             <label class="label">SLUG</label>
                             <input type="text" v-model="form.slug" class="input" placeholder="e.g classic-leather-backpack-xz4a"/>
+                            <p class="error" v-if="errors.slug">{{ errors.slug[0] }}</p>
                         </div>
 
                         <div class="grid grid-cols-3 gap-4">
@@ -145,10 +150,12 @@
                             <div>
                                 <label class="label">Meta title</label>
                                 <input type="text" v-model="form.title" class="input" placeholder="e.g classic leather backpack"/>
+                                <p class="error" v-if="errors.title">{{ errors.title[0] }}</p>
                             </div>
                             <div>
                                 <label class="label">Meta keyword</label>
                                 <input type="text" v-model="form.keywords" class="input" placeholder="e.g classic, leather, backpack, brown, travel"/>
+                                <p class="error" v-if="errors.keywords">{{ errors.keywords[0] }}</p>
                             </div>
                         </div>
 
@@ -156,6 +163,7 @@
                         <div>
                             <label class="label">Meta description</label>
                             <textarea v-model="form.description" class="input" placeholder="e.g Detailed product description"></textarea>
+                            <p class="error" v-if="errors.description">{{ errors.description[0] }}</p>
                         </div>
 
                         <!-- Color Variant -->
@@ -287,21 +295,24 @@ const preview = ref([])
 const isDragOver = ref(false)
 
 //  Image Handling
-function setFile(file){
-    if(!file.type?.startsWith('image/')) return
-    form.images.push(file)
-    preview.value.push({ file, url: URL.createObjectURL(file) })
+function setFile(file) {
+    if (!file.type?.startsWith("image/")) return;
+    form.images.push(file);
+    preview.value.push({
+        file,
+        url: URL.createObjectURL(file),
+    });
 }
 
-function handleImage(e){
-    const files = Array.from(e.target.files || [])
-    files.forEach(file => setFile(file))
+function handleImage(e) {
+    const files = Array.from(e.target.files || []);
+    files.forEach((file) => setFile(file));
 }
 
-function onDrop(e){
-    isDragOver.value = false
-    const files = Array.from(e.dataTransfer?.files || [])
-    files.forEach(file => setFile(file))
+function onDrop(e) {
+    isDragOver.value = false;
+    const files = Array.from(e.dataTransfer?.files || []);
+    files.forEach((file) => setFile(file));
 }
 
 function onDragOver(e){
@@ -313,9 +324,9 @@ function onDragLeave(){
     isDragOver.value = false
 }
 
-function removeImage(idx){
-    form.images.splice(idx, 1)
-    preview.value.splice(idx, 1)
+function removeImage(idx) {
+    form.images.splice(idx, 1);
+    preview.value.splice(idx, 1);
 }
 
 
@@ -359,17 +370,23 @@ async function fetchBrands(){
     }
 }
 
-const form = reactive({
+function resetErrorAndLoading() {
+    loading.value = true;
+    errorMsg.value = "";
+}
+
+// Initial state object for reset purpose
+const initialForm = {
     name: '',
     sku: '',
-    category: '',           // <-- add this
-    subcategory: '',     
-    brand: '',              // <-- add this
+    category: '',
+    subcategory: '',
+    brand: '',
     price: '',
     discount_price: '',
     stock_quantity: '',
     min_stock: '',
-    images: [],  // array for multiple images
+    images: [],       // for uploaded files
     variants: [],
     summary: '',
     description: '',
@@ -377,7 +394,29 @@ const form = reactive({
     is_featured: false,
     is_on_sale: false,
     is_active: true,
-});
+    title: '',
+    keywords: '',
+    meta_description: ''
+}
+
+// reactive form
+const form = reactive({ ...initialForm })
+
+// reset function
+function resetForm() {
+    // reset all fields
+    Object.keys(initialForm).forEach(key => {
+        form[key] = Array.isArray(initialForm[key]) ? [] : initialForm[key]
+    })
+
+    // reset preview and errors
+    preview.value = []
+    Object.keys(errors).forEach(key => delete errors[key])
+
+    // reset success/error messages
+    successMsg.value = ''
+    errorMsg.value = ''
+}
 
 // add variant function
 function addVariant() {
@@ -395,27 +434,61 @@ function removeVariant(index) {
 
 /* Submit */
 async function submit(){
-    loading.value = true
-    Object.keys(errors).forEach(k => delete errors[k])
+    resetErrorAndLoading();
 
     try{
         const fd = new FormData()
 
-        for(const key in form){
-            fd.append(key, form[key])
-        }
+        console.log("Submitted", fd);
 
-        // console.log(form.image) // should be File object
-        // console.log(fd.get('image')) // should be File
+        // normal fields
+        fd.append('name', form.name);
+        fd.append('sku', form.sku);
+        fd.append('category', form.category);
+        fd.append('subcategory', form.subcategory);
+        fd.append('brand', form.brand);
+        fd.append('price', form.price);
+        fd.append('discount_price', form.discount_price || 0);
+        fd.append('stock_quantity', form.stock_quantity);
+        fd.append('min_stock', form.min_stock || 0);
 
-        const res = await api.post('/create-product', fd)
-        // console.log(res.data.message);
+        fd.append('summary', form.summary || '');
+        fd.append('description', form.description || '');
+        fd.append('slug', form.slug || '');
+
+        fd.append('title', form.title || '');
+        fd.append('keywords', form.keywords || '');
+        fd.append('meta_description', form.meta_description || '');
+
+        fd.append('is_featured', form.is_featured ? 1 : 0);
+        fd.append('is_on_sale', form.is_on_sale ? 1 : 0);
+        fd.append('is_active', form.is_active ? 1 : 0);
+
+        // variants FIX
+        form.variants.forEach((variant, i) => {
+            fd.append(`variants[${i}][color]`, variant.color || '');
+            fd.append(`variants[${i}][size]`, variant.size || '');
+            fd.append(`variants[${i}][price]`, variant.price || 0);
+            fd.append(`variants[${i}][stock]`, variant.stock || 0);
+        })
+
+        // images FIX
+        form.images.forEach(file => {
+            fd.append('images[]', file);
+        });
+
+        const res = await api.post('/products/create', fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        resetForm();
+        successMsg.value = res.data.message || 'Product created successfully!';
         router.push('/create-product')
 
     }catch(err){
         if(err.response?.data?.errors){
-        Object.assign(errors, err.response.data.errors)
+            Object.assign(errors, err.response.data.errors)
         }
+        errorMsg.value = err.response?.data?.message || 'Failed to create product.'
     }finally{
         loading.value = false
     }

@@ -37,6 +37,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 use App\Http\Controllers\Product\ProductController;
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('products')->group(function () {
+        Route::post('/create', [ProductController::class, 'store']);
         // Additional routes for categories, subcategories, and brands
         Route::get('/get-categories', [ProductController::class, 'getCategory']);
         Route::get('/get-subcategories', [ProductController::class, 'getSubCategory']);

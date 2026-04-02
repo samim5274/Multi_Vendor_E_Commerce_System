@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
+use App\Http\Requests\StoreProductRequest;
 use App\Models\User;
 use App\Models\ProductCategory;
 use App\Models\ProductSubCategory;
@@ -17,6 +19,7 @@ use App\Models\Brand;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Models\ProductVariant;
+use App\Models\ProductImage;
 
 class ProductController extends Controller
 {
@@ -62,6 +65,91 @@ class ProductController extends Controller
                 'success' => false,
                 'message' => 'Brands can not fetched.',
             ], 500);
+        }
+    }
+
+    public function store(StoreProductRequest $request){
+
+        $user = auth('sanctum')->user();
+        $data = $request->validated();
+
+        try {
+            DB::beginTransaction();
+
+            $product = new Product();
+
+            $product->vendor_id = $user->vendor_id;
+
+            $product->name = $data['name'];
+            $product->sku = $data['sku'];
+
+            $product->brand_id = $data['brand'];
+            $product->category_id = $data['category'];
+            $product->subcategory_id = $data['subcategory'];
+
+            $product->price = $data['price'];
+            $product->discount_price = $data['discount_price'] ?? 0;
+            $product->stock_quantity = $data['stock_quantity'];
+            $product->min_stock = $data['min_stock'] ?? 0;
+
+            $product->summary = $data['summary'] ?? null;
+            $product->description = $data['description'] ?? null;
+            $product->slug = $data['slug'] ?? null;
+
+            $product->meta_title = $data['title'] ?? null;
+            $product->meta_keywords = $data['keywords'] ?? null;
+            $product->meta_description = $data['meta_description'] ?? null;
+
+            $product->is_featured = $data['is_featured'] ?? false;
+            $product->is_on_sale = $data['is_on_sale'] ?? false;
+            $product->is_active = $data['is_active'] ?? true;
+
+            $product->save();
+
+            // save product variants if provided
+            if ($request->has('variants') && is_array($request->variants)) {
+                foreach ($request->variants as $variant) {
+                    ProductVariant::create([
+                        'product_id' => $product->id,
+                        'color' => $variant['color'] ?? null,
+                        'size' => $variant['size'] ?? null,
+                        'price' => $variant['price'] ?? 0,
+                        'stock' => $variant['stock'] ?? 0,
+                    ]);
+                }
+            }
+
+            // save product images and get their paths
+            $this->storeProductImages($request, $product->id, $user);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product created successfully.',
+                'data' => $product
+            ], 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => "Product can not created. Error: " . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function storeProductImages(Request $request, $productId, $user)
+    {
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                $path = $image->store("products/{$user->vendor_id}", 'public');
+                ProductImage::create([
+                    'product_id' => $productId,
+                    'image_path' => $path,
+                    'is_primary' => $index === 0,
+                    'sort_order' => $index
+                ]);
+            }
         }
     }
 }

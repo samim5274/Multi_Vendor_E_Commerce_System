@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { watch } from "vue"
+import { ref, watch } from "vue"
 
 const props = defineProps({
   successMsg: { type: String, default: "" },
@@ -75,23 +75,32 @@ const props = defineProps({
 
 const emit = defineEmits(["update:successMsg", "update:errorMsg"])
 
+let successTimer = null
+let errorTimer = null
+
 function closeSuccess() {
+  clearTimeout(successTimer)
+  successTimer = null
   emit("update:successMsg", "")
 }
 
 function closeError() {
+  clearTimeout(errorTimer)
+  errorTimer = null
   emit("update:errorMsg", "")
 }
 
 // auto hide
 watch(() => props.successMsg, (v) => {
   if (!v) return
-  setTimeout(closeSuccess, props.duration)
+  clearTimeout(successTimer)
+  successTimer = setTimeout(closeSuccess, props.duration)
 })
 
 watch(() => props.errorMsg, (v) => {
   if (!v) return
-  setTimeout(closeError, props.duration)
+  clearTimeout(errorTimer)
+  errorTimer = setTimeout(closeError, props.duration)
 })
 </script>
 
