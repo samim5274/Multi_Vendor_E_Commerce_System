@@ -18,3 +18,28 @@ Route::prefix('auth')->group(function () {
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
+
+
+// ======================
+// Profile Routes
+// ======================
+use App\Http\Controllers\Auth\ProfileController;
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('profile')->group(function () {
+        Route::put('/', [ProfileController::class, 'update']);
+        Route::put('/password', [ProfileController::class, 'changePassword']);
+    });
+});
+
+// ======================
+// Product Routes
+// ======================
+use App\Http\Controllers\Product\ProductController;
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('products')->group(function () {
+        // Additional routes for categories, subcategories, and brands
+        Route::get('/get-categories', [ProductController::class, 'getCategory']);
+        Route::get('/get-subcategories', [ProductController::class, 'getSubCategory']);
+        Route::get('/get-brands', [ProductController::class, 'getBrand']);
+    });
+});

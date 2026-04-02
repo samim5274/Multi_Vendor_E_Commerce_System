@@ -271,22 +271,22 @@ const pagesOpen = ref(false);
 
 const routeMap = {
   dashboard: "/vendor/dashboard",
-  profile: "/profile",
-  create: "/create",
+  profile: "/vendor/profile",
+  create: "/create-product",
   complainList: "/complain-list",
   myComplain: "/my-complain",
-  // setting: "/setting",
+  setting: "/setting",
   logout: "/admin-login",
 };
 
 const routeMatch = [
   { key: "myComplain", prefixes: ["/complaints/view", "/my-complain"] },
   { key: "complainList", prefixes: ["/complaints", "/complain-list"] },
-  { key: "create", prefixes: ["/create"] },
+  { key: "create", prefixes: ["/create-product"] },
   { key: "dashboard", prefixes: ["/vendor/dashboard"] },
   { key: "logout", prefixes: ["/logout"] },
-  { key: "profile", prefixes: ["/profile"] },
-  // { key: "setting", prefixes: ["/setting"] },
+  { key: "profile", prefixes: ["/vendor/profile"] },
+  { key: "setting", prefixes: ["/setting"] },
 ];
 
 const activeKey = computed(() => {

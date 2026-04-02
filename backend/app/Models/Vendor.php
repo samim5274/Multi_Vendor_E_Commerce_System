@@ -33,4 +33,9 @@ class Vendor extends Model
     {
         return $this->hasMany(User::class, 'vendor_id');
     }
+
+    public function stock()
+    {
+        return $this->hasMany(Stock::class, 'vendor_id');
+    }
 }

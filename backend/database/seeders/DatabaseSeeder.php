@@ -10,9 +10,15 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        // php artisan db:seed --class=SeederName
         $this->call([
             VendorSeeder::class,
             UserSeeder::class,
+
+            ProductCategorySeeder::class,
+            ProductSubCategorySeeder::class,
+            BrandSeeder::class,
+            // ProductSeeder::class,
         ]);
     }
 }

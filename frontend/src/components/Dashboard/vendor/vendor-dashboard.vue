@@ -13,6 +13,14 @@
         @close="sidebarOpen = false"
       />
 
+      <Message
+        v-if="successMsg || errorMsg"
+        :successMsg="successMsg"
+        :errorMsg="errorMsg"
+        @update:successMsg="successMsg = $event"
+        @update:errorMsg="errorMsg = $event"
+      />
+
       <!-- Content -->
       <div class="flex-1 min-w-0">
         <!-- <Main class="w-full h-full" /> -->
@@ -29,11 +37,30 @@ import { useRouter } from "vue-router";
 import Navbar from './vendor-navbar.vue';
 import Header from './vendor-header.vue';
 import Main from './vendor-main.vue';
+import Message from '../../Message/message.vue'
 
 const sidebarOpen = ref(false);
 const active = ref("dashboard");
 
 const router = useRouter();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const isDark = ref(false);
 
