@@ -175,4 +175,33 @@ class ProductController extends Controller
             }
         }
     }
+
+    public function show($slug){
+        try {
+            $product = Product::with([
+                'category:id,name',
+                'subcategory:id,name',
+                'brand:id,name',
+                'vendor:id,shop_name',
+                'variants',
+                'images'
+            ])->where('slug', $slug)->firstOrFail();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product fetched successfully.',
+                'data' => $product
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found.',
+            ], 404);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => "Product can not fetched. Error: " . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

@@ -40,7 +40,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/create', [ProductController::class, 'store']);
         // get routes
         Route::get('/', [ProductController::class, 'index']);
-        Route::get('/{id}', [ProductController::class, 'show'])->whereNumber('id');
+        Route::get('/{slug}', [ProductController::class, 'show'])->where('slug', '[a-zA-Z0-9\-]+');
 
         Route::get('/get-categories', [ProductController::class, 'getCategory']);
         Route::get('/get-subcategories', [ProductController::class, 'getSubCategory']);

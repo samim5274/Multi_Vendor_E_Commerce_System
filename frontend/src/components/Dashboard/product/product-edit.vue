@@ -254,11 +254,15 @@
                         <!-- Buttons -->
                         <div class="flex gap-3 pt-4">
                             <button :disabled="loading" class="bg-green-600 text-white px-5 py-2 rounded-xl hover:bg-green-700">
-                                {{ loading ? 'Saving...' : 'Save Product' }}
+                                {{ loading ? 'Updating...' : 'Update Product' }}
                             </button>
 
-                            <button type="button" @click="resetForm()" class="bg-red-600 text-white px-5 py-2 rounded-xl hover:bg-red-700">
+                            <button type="button" @click="resetForm()" class="bg-gray-600 text-white px-5 py-2 rounded-xl hover:bg-gray-700">
                                 Clear
+                            </button>
+
+                            <button type="button" class="bg-red-600 text-white px-5 py-2 rounded-xl hover:bg-red-700">
+                                Delete
                             </button>
                         </div>
 
@@ -273,7 +277,7 @@
 <script setup>
 import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../../../services/api.js'
+import api, {makeImg} from '../../../services/api.js'
 
 import Navbar from "../vendor/vendor-navbar.vue";
 import HeaderSection from "../vendor/vendor-header.vue";
@@ -290,6 +294,61 @@ const successMsg = ref('');
 const errorMsg = ref('');
 
 const active = ref('dashboard');
+
+
+// get product details
+async function fetchProduct(){
+    try{
+        const res = await api.get('/products/slug')
+        const product = res.data.data;
+        form.name = product.name;
+        form.sku = product.sku;
+        form.category = product.category_id;
+        form.subcategory = product.subcategory_id;
+        form.brand = product.brand_id;
+        form.price = product.price;
+        form.discount_price = product.discount_price;
+        form.stock_quantity = product.stock_quantity;
+        form.min_stock = product.min_stock;
+        form.summary = product.summary;
+        form.description = product.description;
+        form.slug = product.slug;
+        form.is_featured = product.is_featured;
+        form.is_on_sale = product.is_on_sale;
+        form.is_active = product.is_active;
+        form.title = product.title;
+        form.keywords = product.keywords;
+        form.meta_description = product.meta_description;
+        form.variants = product.variants || [];
+        // for images, we only need the URLs for preview. Actual file upload will be handled separately.
+        preview.value = product.images.map(img => ({
+            file: null, // no actual file object since it's already uploaded
+            url: makeImg(img.path) // convert path to full URL
+        }));
+    }catch(err){
+        console.error('Failed to fetch product details:', err)
+        errorMsg.value = 'Failed to load product details.'
+    }finally{
+        loading.value = false;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const preview = ref([])
 const isDragOver = ref(false)
@@ -328,6 +387,23 @@ function removeImage(idx) {
     form.images.splice(idx, 1);
     preview.value.splice(idx, 1);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -380,6 +456,23 @@ async function fetchBrands(){
         console.error('Failed to fetch brands:', err)
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -518,6 +611,22 @@ async function submit(){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // dark and light mode
 
 const isDark = ref(false);
@@ -540,6 +649,9 @@ function onSearch(q) {
 
 /* ESC to close drawer */
 onMounted(() => {
+    fetchProduct();
+
+    
     fetchCategories();
     fetchSubCategories();
     fetchBrands();
