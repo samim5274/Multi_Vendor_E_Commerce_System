@@ -55,14 +55,20 @@ class Product extends Model
         parent::boot();
 
         static::saving(function ($product) {
+
             if (empty($product->slug) || $product->isDirty('name')) {
-                $slug = Str::slug($product->name);
+                $baseSlug = Str::slug($product->name);
+                $newSlug = $baseSlug . '-' . Str::lower(Str::random(4));
+                $exists = static::where('vendor_id', $product->vendor_id)
+                    ->where('category_id', $product->category_id)
+                    ->where('slug', $newSlug)
+                    ->where('id', '!=', $product->id)
+                    ->exists();
 
-                $count = static::where('slug', 'like', $slug . '%')
-                              ->where('id', '!=', $product->id)
-                              ->count();
-
-                $product->slug = ($count > 0) ? "{$slug}-{$count}" : $slug;
+                if ($exists) {
+                    $newSlug = $baseSlug . '-' . Str::lower(Str::random(6));
+                }
+                $product->slug = $newSlug;
             }
         });
     }

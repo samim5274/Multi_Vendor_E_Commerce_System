@@ -46,12 +46,12 @@
 
                                             <div class="flex flex-col gap-0.5 max-w-[220px]">
                                                 <div class="flex items-center gap-2">
+                                                    <span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                                        #{{ product.id }}.
+                                                    </span>
                                                     <h4 class="text-sm font-bold text-slate-900 dark:text-white truncate">
                                                         {{ product.name }}
-                                                    </h4>
-                                                    <span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                                                        #{{ product.id }}
-                                                    </span>
+                                                    </h4>                                                    
                                                 </div>
 
                                                 <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
@@ -77,9 +77,9 @@
                                                         Inactive
                                                     </div>
 
-                                                    <span class="text-[10px] text-slate-400 dark:text-slate-600 font-mono italic truncate">
+                                                    <!-- <span class="text-[10px] text-slate-400 dark:text-slate-600 font-mono italic truncate">
                                                         /{{ product.slug }}
-                                                    </span>
+                                                    </span> -->
                                                 </div>
                                             </div>
                                         </div>
@@ -161,7 +161,7 @@
 
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end gap-2">
-                                            <button @click="editProduct(product.id)" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-blue-600 transition-colors hover:bg-blue-50 dark:border-slate-700 dark:text-blue-400 dark:hover:bg-blue-900/30">
+                                            <button @click="editProduct(product.slug)" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-blue-600 transition-colors hover:bg-blue-50 dark:border-slate-700 dark:text-blue-400 dark:hover:bg-blue-900/30">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </button>
                                             <button @click="deleteProduct(product.id)" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-red-600 transition-colors hover:bg-red-50 dark:border-slate-700 dark:text-red-400 dark:hover:bg-red-900/30">
@@ -242,6 +242,30 @@ const filterProducts = computed(() => {
         p.subcategory?.name?.toLowerCase().includes(q)
     );
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+function editProduct(slug){
+    router.push(`/product-edit/${slug}`);
+}
+
+
+
+
+
+
+
+
 
 
 

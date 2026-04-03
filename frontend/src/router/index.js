@@ -62,6 +62,7 @@ import ProductDetails from '../components/e-commerce/product-details.vue'
 // Product Routes
 import CreateProduct from '../components/Dashboard/product/create-product.vue'
 import ProductList from '../components/Dashboard/product/product-list.vue'
+import ProductEdit from '../components/Dashboard/product/product-edit.vue'
 
 
 
@@ -121,6 +122,7 @@ const routes = [
   // Product Routes
   { path: '/create-product', component: CreateProduct, meta: { requiresAuth: true, roles: ['vendor_owner', 'vendor_staff'], title: "Create Product" } },
   { path: '/products', component: ProductList, meta: { requiresAuth: true, roles: ['vendor_owner', 'vendor_staff'], title: "Product Details" } },
+  { path: '/product-edit/:id', component: ProductEdit, meta: { requiresAuth: true, roles: ['vendor_owner', 'vendor_staff'], title: "Edit Product" } },
 
   // admin Routes
   { path: '/dashboard', component: dashboard, meta: { requiresAuth: true, title: "Dashboard" } },
