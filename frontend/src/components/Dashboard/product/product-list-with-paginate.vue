@@ -182,6 +182,68 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination section -->
+                    <div class="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-xs text-slate-500">
+                            Showing
+                            <span class="font-semibold text-slate-700">{{ fromItem }}</span>
+                            –
+                            <span class="font-semibold text-slate-700">{{ toItem }}</span>
+                            of
+                            <span class="font-semibold text-slate-700">{{ total }}</span>
+                        </p>
+
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            <!-- First -->
+                            <button
+                                @click="fetchProducts(1)"
+                                :disabled="currentPage === 1 || loading"
+                                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </button>
+
+                            <!-- Prev -->
+                            <button
+                                @click="fetchProducts(Math.max(1, currentPage - 1))"
+                                :disabled="currentPage === 1 || loading"
+                                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+
+                            <!-- Pages -->
+                            <button
+                                v-for="page in visiblePages"
+                                :key="String(page)"
+                                :disabled="page === '...' || loading"
+                                @click="page !== '...' && fetchProducts(page)"
+                                class="rounded-lg border px-3 py-1.5 text-xs font-semibold"
+                                :class="[
+                                    page === '...'
+                                    ? 'border-slate-200 bg-white dark:bg-slate-900 text-slate-400 cursor-default'
+                                    : currentPage === page
+                                        ? 'border-slate-900 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                                        : 'border-slate-200 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 hover:bg-slate-50'
+                                ]">
+                                {{ page }}
+                            </button>
+
+                            <!-- Next -->
+                            <button
+                                @click="fetchProducts(Math.min(lastPage, currentPage + 1))"
+                                :disabled="currentPage === lastPage || loading"
+                                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                                <i class="fa-solid fa-angle-right"></i>
+                            </button>
+
+                            <!-- Last -->
+                            <button
+                                @click="fetchProducts(lastPage)"
+                                :disabled="currentPage === lastPage || loading"
+                                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,13 +274,37 @@ const active = ref('dashboard');
 // get products
 const products = ref([]);
 const searchQuery = ref('');
-async function fetchProducts(){
+async function fetchProducts(page = 1){
     loading.value = true;
 
     try{
-        const res = await api.get('/products');
-        products.value = res.data.data;
-        // console.log(products.value)
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+
+        // search add
+        if (searchQuery.value) {
+            params.set('search', searchQuery.value);
+        }
+
+        const res = await api.get(`/products?${params.toString()}`);
+        const payload = res.data;
+
+        const dataSource = payload.data?.data ? payload.data : payload;
+
+        const list = Array.isArray(dataSource.data) ? dataSource.data : [];
+
+        products.value = list.map(p => ({
+            ...p,
+            image: makeImg(p.image)
+        }));
+
+        currentPage.value = dataSource.current_page ?? 1;
+        lastPage.value = dataSource.last_page ?? 1;
+        total.value = dataSource.total ?? 0;
+        perPage.value = dataSource.per_page ?? 15;
+        fromItem.value = dataSource.from ?? 0;
+        toItem.value = dataSource.to ?? 0;
+
     }catch(err){
         console.error('Failed to fetch products:', err);
         errorMsg.value = err.response?.data?.message || 'Failed to load products.';
@@ -226,6 +312,49 @@ async function fetchProducts(){
         loading.value = false;
     }
 }
+
+
+/**
+ * ------------------------------------------------
+ * Pagination
+ * ------------------------------------------------
+ */
+const currentPage = ref(1);
+const lastPage = ref(1);
+const total = ref(0);
+const perPage = ref(15);
+const fromItem = ref(0);
+const toItem = ref(0);
+
+const visiblePages = computed(() => {
+    const pages = [];
+    const current = currentPage.value;
+    const last = lastPage.value;
+
+    if (last <= 5) {
+        for (let i = 1; i <= last; i++) pages.push(i);
+        return pages;
+    }
+
+    pages.push(1);
+
+    if (current > 3) pages.push("...");
+
+    const start = Math.max(2, current - 1);
+    const end = Math.min(last - 1, current + 1);
+
+    for (let i = start; i <= end; i++) {
+        pages.push(i);
+    }
+
+    if (current < last - 2) pages.push("...");
+
+    pages.push(last);
+
+    return pages;
+});
+
+
 
 
 // filter products by search query
@@ -259,7 +388,7 @@ function toggleTheme() {
 }
 
 function onSearch(q) {
-    // console.log("search:", q);
+    console.log("search:", q);
 }
 
 
