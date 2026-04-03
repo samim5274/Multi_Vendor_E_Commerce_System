@@ -14,7 +14,6 @@
             />
 
             <Message
-                v-if="successMsg || errorMsg"
                 :successMsg="successMsg"
                 :errorMsg="errorMsg"
                 @update:successMsg="successMsg = $event"

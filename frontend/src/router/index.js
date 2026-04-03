@@ -162,12 +162,12 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.meta.requiresAuth && !token) {
-    return next('/login');
+    return next('/admin-login');
   }
 
   if (to.meta.roles) {
     if (!user) {
-      return next('/login');
+      return next('/admin-login');
     }
 
     if (!to.meta.roles.includes(user.role)) {
