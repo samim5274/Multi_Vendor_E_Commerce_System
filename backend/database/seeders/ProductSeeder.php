@@ -25,10 +25,10 @@ class ProductSeeder extends Seeder
         $categories = ProductCategory::all();
         $subcategories = ProductSubCategory::all();
         $brands = Brand::all();
-        $vendor = User::whereNotNull('vendor_id')->first(); // assuming first vendor
+        $vendors = User::whereNotNull('vendor_id')->inRandomOrder()->take(5)->get();
 
-        if(!$categories->count() || !$subcategories->count() || !$brands->count() || !$vendor){
-            $this->command->error('Make sure categories, subcategories, brands and vendor exist.');
+        if(!$categories->count() || !$subcategories->count() || !$brands->count() || !$vendors->count()){
+            $this->command->error('Make sure categories, subcategories, brands and vendors exist.');
             return;
         }
 
@@ -36,12 +36,13 @@ class ProductSeeder extends Seeder
             $category = $categories->random();
             $subcategory = $subcategories->where('category_id', $category->id)->random();
             $brand = $brands->random();
+            $vendor = $vendors->random();
 
             $name = "Sample Product {$i}";
             $slug = Str::slug($name);
 
             $product = Product::create([
-                'vendor_id'        => $vendor->vendor_id,
+                'vendor_id'         => $vendor->vendor_id,
                 'name'             => $name,
                 'slug'             => $slug,
                 'sku'              => 'SKU-' . Str::upper(Str::random(6)),

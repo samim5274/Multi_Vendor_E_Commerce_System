@@ -128,10 +128,10 @@
                 <button
                   class="w-full px-4 py-2 text-sm text-left transition
                          hover:bg-white dark:hover:bg-white/10"
-                  :class="activeKey === 'myComplain'
+                  :class="activeKey === 'products'
                     ? 'bg-white text-slate-900 font-medium dark:bg-white/10 dark:text-white'
                     : 'text-slate-700 dark:text-slate-200/90'"
-                  @click="pick('myComplain')">
+                  @click="pick('products')">
                   Product List
                 </button>
               </li>
@@ -273,15 +273,13 @@ const routeMap = {
   dashboard: "/vendor/dashboard",
   profile: "/vendor/profile",
   create: "/create-product",
-  complainList: "/complain-list",
-  myComplain: "/my-complain",
+  products: "/products",
   setting: "/setting",
   logout: "/admin-login",
 };
 
 const routeMatch = [
-  { key: "myComplain", prefixes: ["/complaints/view", "/my-complain"] },
-  { key: "complainList", prefixes: ["/complaints", "/complain-list"] },
+  { key: "products", prefixes: ["/products"] },
   { key: "create", prefixes: ["/create-product"] },
   { key: "dashboard", prefixes: ["/vendor/dashboard"] },
   { key: "logout", prefixes: ["/logout"] },
@@ -324,7 +322,7 @@ async function pick(key) {
 watch(
   () => activeKey.value,
   (k) => {
-    const complainKeys = ["myComplain", "create", "complainList"];
+    const complainKeys = ["products", "create",];
     if (complainKeys.includes(k)) {
       pagesOpen.value = true;
     }

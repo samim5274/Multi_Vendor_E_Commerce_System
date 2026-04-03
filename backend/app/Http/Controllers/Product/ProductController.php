@@ -23,6 +23,29 @@ use App\Models\ProductImage;
 
 class ProductController extends Controller
 {
+    public function index(){
+        try{
+            $products = Product::with([
+                'category:id,name',
+                'subcategory:id,name',
+                'brand:id,name',
+                'vendor:id,shop_name'])
+                ->where('vendor_id', auth('sanctum')->user()->vendor_id)
+                ->get(); // vendor_id wise product show filtering
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Products fetched successfully.',
+                'data' => $products
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Products can not fetched.',
+            ], 500);
+        }
+    }
+
     public function getCategory(){
         try{
             $productCategories = ProductCategory::all();
