@@ -6,7 +6,7 @@
             :isDark="isDark" @toggle-theme="toggleTheme"
         />
 
-        <div class="flex  min-h-[calc(100vh-56px)]">
+        <div class="flex min-h-[calc(100vh-56px)]">
             <Navbar
                 v-model="active"
                 :open="sidebarOpen"
@@ -22,7 +22,7 @@
 
             <!-- Content -->
             <div class="min-h-screen w-full bg-gray-50 dark:bg-slate-950 transition-colors duration-200 p-6">
-                <div class="mx-auto bg-white dark:bg-slate-900 shadow-lg rounded-2xl p-8 max-w-4xl">
+                <div class="mx-auto bg-white dark:bg-slate-900 shadow-lg rounded-2xl p-8 max-w-6xl">
 
                     <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white"><i class="fa-solid fa-calendar-plus"></i> Create New Product</h2>
 
@@ -161,7 +161,7 @@
                         <!-- Meta description -->
                         <div>
                             <label class="label">Meta description</label>
-                            <textarea v-model="form.description" class="input" placeholder="e.g Detailed product description"></textarea>
+                            <textarea v-model="form.meta_description" class="input" placeholder="e.g Detailed product description"></textarea>
                             <p class="error" v-if="errors.description">{{ errors.description[0] }}</p>
                         </div>
 
@@ -257,7 +257,7 @@
                                 {{ loading ? 'Saving...' : 'Save Product' }}
                             </button>
 
-                            <button class="bg-red-600 text-white px-5 py-2 rounded-xl hover:bg-red-700">
+                            <button type="button" @click="resetForm()" class="bg-red-600 text-white px-5 py-2 rounded-xl hover:bg-red-700">
                                 Clear
                             </button>
                         </div>
@@ -330,6 +330,9 @@ function removeImage(idx) {
 
 
 
+
+
+
 // get category
 const categories = ref([]);
 async function fetchCategories(){
@@ -340,6 +343,10 @@ async function fetchCategories(){
         console.error('Failed to fetch categories:', err)
     }
 }
+
+
+
+
 
 // get subcategory
 const subcategories = ref([]);
@@ -358,6 +365,10 @@ const filteredSubCategories = computed(() => {
     return subcategories.value.filter(sub => sub.category_id === form.category)
 })
 
+
+
+
+
 // get brand
 const brands = ref([]);
 async function fetchBrands(){
@@ -368,6 +379,11 @@ async function fetchBrands(){
         console.error('Failed to fetch brands:', err)
     }
 }
+
+
+
+
+
 
 function resetErrorAndLoading() {
     loading.value = true;

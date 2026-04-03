@@ -1,7 +1,6 @@
 <template>
   <section class="min-h-screen bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 flex items-center justify-center px-4 py-10 selection:bg-[#A3D921] selection:text-black transition-colors duration-500">
     <Message
-      v-if="successMsg || errorMsg"
       :successMsg="successMsg"
       :errorMsg="errorMsg"
       @update:successMsg="successMsg = $event"
