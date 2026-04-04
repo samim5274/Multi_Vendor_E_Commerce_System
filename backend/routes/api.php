@@ -40,10 +40,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/create', [ProductController::class, 'store']);
         // get routes
         Route::get('/', [ProductController::class, 'index']);
-        Route::get('/{slug}', [ProductController::class, 'show'])->where('slug', '[a-zA-Z0-9\-]+');
 
         Route::get('/get-categories', [ProductController::class, 'getCategory']);
         Route::get('/get-subcategories', [ProductController::class, 'getSubCategory']);
         Route::get('/get-brands', [ProductController::class, 'getBrand']);
+
+        // ❗ LAST: dynamic route for product details, must be at the end of all product routes
+        Route::get('/{slug}', [ProductController::class, 'show'])->where('slug', '[a-zA-Z0-9\-]+');
     });
 });

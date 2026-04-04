@@ -148,12 +148,12 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="label">Meta title</label>
-                                <input type="text" v-model="form.title" class="input" placeholder="e.g classic leather backpack"/>
+                                <input type="text" v-model="form.meta_title" class="input" placeholder="e.g classic leather backpack"/>
                                 <p class="error" v-if="errors.title">{{ errors.title[0] }}</p>
                             </div>
                             <div>
                                 <label class="label">Meta keyword</label>
-                                <input type="text" v-model="form.keywords" class="input" placeholder="e.g classic, leather, backpack, brown, travel"/>
+                                <input type="text" v-model="form.meta_keywords" class="input" placeholder="e.g classic, leather, backpack, brown, travel"/>
                                 <p class="error" v-if="errors.keywords">{{ errors.keywords[0] }}</p>
                             </div>
                         </div>
@@ -240,13 +240,15 @@
 
                                 <!-- Preview -->
                                 <div v-if="preview.length" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                <div v-for="(img, idx) in preview" :key="idx" class="relative">
-                                    <img :src="img.url" class="h-28 w-28 rounded-xl border object-cover"/>
-                                    <button type="button" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700" @click="removeImage(idx)">
-                                    ✕
-                                    </button>
-                                    <p class="text-xs text-slate-500 mt-1 text-center truncate dark:text-slate-300">{{ img.file.name }}</p>
-                                </div>
+                                    <div v-for="(img, idx) in preview" :key="idx" class="relative">
+                                        <img :src="img.url"  class="h-28 w-28 rounded-xl border object-cover"/>
+                                        <button type="button" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700" @click="removeImage(idx)">
+                                        ✕
+                                        </button>
+                                        <p class="text-xs text-slate-500 mt-1 text-center truncate dark:text-slate-300">
+                                            {{ img.file?.name || img.name }}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -276,7 +278,7 @@
 
 <script setup>
 import { reactive, ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import api, {makeImg} from '../../../services/api.js'
 
 import Navbar from "../vendor/vendor-navbar.vue";
@@ -285,6 +287,7 @@ import Message from '../../Message/message.vue'
 import Footer from '../vendor/vendor-footer.vue';
 
 const router = useRouter()
+const route = useRoute()
 
 const loading = ref(false)
 const errors = reactive({})
@@ -298,8 +301,10 @@ const active = ref('dashboard');
 
 // get product details
 async function fetchProduct(){
+    loading.value = true;
+    const slug = route.params.slug;
     try{
-        const res = await api.get('/products/slug')
+        const res = await api.get(`/products/${slug}`);
         const product = res.data.data;
         form.name = product.name;
         form.sku = product.sku;
@@ -318,13 +323,20 @@ async function fetchProduct(){
         form.is_active = product.is_active;
         form.title = product.title;
         form.keywords = product.keywords;
+        form.meta_title = product.meta_title;
+        form.meta_keywords = product.meta_keywords;
         form.meta_description = product.meta_description;
         form.variants = product.variants || [];
         // for images, we only need the URLs for preview. Actual file upload will be handled separately.
-        preview.value = product.images.map(img => ({
-            file: null, // no actual file object since it's already uploaded
-            url: makeImg(img.path) // convert path to full URL
-        }));
+        preview.value = (product.images || []).map(img => {
+            const path = img.image_path;
+
+            return {
+                file: null,
+                url: path ? makeImg(path) : '',   // make full URL
+                name: path ? path.split('/').pop() : 'Image'
+            };
+        });
     }catch(err){
         console.error('Failed to fetch product details:', err)
         errorMsg.value = 'Failed to load product details.'
@@ -332,9 +344,6 @@ async function fetchProduct(){
         loading.value = false;
     }
 }
-
-
-
 
 
 
