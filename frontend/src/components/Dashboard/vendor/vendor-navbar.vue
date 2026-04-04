@@ -279,7 +279,7 @@ const routeMap = {
 };
 
 const routeMatch = [
-  { key: "products", prefixes: ["/products"] },
+  { key: "products", prefixes: ["/products", "/product-edit"] },
   { key: "create", prefixes: ["/create-product"] },
   { key: "dashboard", prefixes: ["/vendor/dashboard"] },
   { key: "logout", prefixes: ["/logout"] },
