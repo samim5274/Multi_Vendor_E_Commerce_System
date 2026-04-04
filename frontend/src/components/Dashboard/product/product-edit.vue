@@ -26,7 +26,7 @@
 
                     <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white"><i class="fa-solid fa-pen-to-square"></i> Edit Product</h2>
 
-                    <form @submit.prevent="submit" class="space-y-6">
+                    <form @submit.prevent="submitEdit" class="space-y-6">
 
                         <!-- Name -->
                         <div>
@@ -241,7 +241,7 @@
                                 <!-- Preview -->
                                 <div v-if="preview.length" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
                                     <div v-for="(img, idx) in preview" :key="idx" class="relative">
-                                        <img :src="img.url"  class="h-28 w-28 rounded-xl border object-cover"/>
+                                        <img :src="img.url"  class="h-full w-full rounded-xl border object-cover"/>
                                         <button type="button" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700" @click="removeImage(idx)">
                                         ✕
                                         </button>
@@ -254,18 +254,45 @@
                         </div>
 
                         <!-- Buttons -->
-                        <div class="flex gap-3 pt-4">
-                            <button :disabled="loading" class="bg-green-600 text-white px-5 py-2 rounded-xl hover:bg-green-700">
-                                {{ loading ? 'Updating...' : 'Update Product' }}
-                            </button>
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 mt-8">
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <button 
+                                    type="button" 
+                                    @click="router.back()" 
+                                    class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-medium text-sm shadow-sm">
+                                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                                    Back
+                                </button>
 
-                            <button type="button" @click="resetForm()" class="bg-gray-600 text-white px-5 py-2 rounded-xl hover:bg-gray-700">
-                                Clear
-                            </button>
+                                <button 
+                                    type="button" 
+                                    @click="handleDelete"
+                                    class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 transition-all font-medium text-sm">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                    Delete
+                                </button>
+                            </div>
 
-                            <button type="button" class="bg-red-600 text-white px-5 py-2 rounded-xl hover:bg-red-700">
-                                Delete
-                            </button>
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <button 
+                                    type="button" 
+                                    @click="resetForm()" 
+                                    class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all font-medium text-sm">
+                                    <i class="fa-solid fa-rotate-right text-xs"></i>
+                                    Reset
+                                </button>
+
+                                <button 
+                                    :disabled="loading" 
+                                    type="submit"
+                                    class="flex-[2] sm:flex-none inline-flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20 transition-all font-bold text-sm">
+                                    
+                                    <i v-if="loading" class="fa-solid fa-circle-notch animate-spin"></i>
+                                    <i v-else class="fa-solid fa-check"></i>
+                                    
+                                    {{ loading ? 'Saving...' : 'Update Changes' }}
+                                </button>
+                            </div>
                         </div>
 
                     </form>
@@ -279,7 +306,7 @@
 <script setup>
 import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import api, {makeImg} from '../../../services/api.js'
+import api, { makeImg } from '../../../services/api.js'
 
 import Navbar from "../vendor/vendor-navbar.vue";
 import HeaderSection from "../vendor/vendor-header.vue";
@@ -291,111 +318,20 @@ const route = useRoute()
 
 const loading = ref(false)
 const errors = reactive({})
+const successMsg = ref('')
+const errorMsg = ref('')
 
-
-const successMsg = ref('');
-const errorMsg = ref('');
-
-const active = ref('dashboard');
-
-
-// get product details
-async function fetchProduct(){
-    loading.value = true;
-    const slug = route.params.slug;
-    try{
-        const res = await api.get(`/products/${slug}`);
-        const product = res.data.data;
-        form.name = product.name;
-        form.sku = product.sku;
-        form.category = product.category_id;
-        form.subcategory = product.subcategory_id;
-        form.brand = product.brand_id;
-        form.price = product.price;
-        form.discount_price = product.discount_price;
-        form.stock_quantity = product.stock_quantity;
-        form.min_stock = product.min_stock;
-        form.summary = product.summary;
-        form.description = product.description;
-        form.slug = product.slug;
-        form.is_featured = product.is_featured;
-        form.is_on_sale = product.is_on_sale;
-        form.is_active = product.is_active;
-        form.title = product.title;
-        form.keywords = product.keywords;
-        form.meta_title = product.meta_title;
-        form.meta_keywords = product.meta_keywords;
-        form.meta_description = product.meta_description;
-        form.variants = product.variants || [];
-        // for images, we only need the URLs for preview. Actual file upload will be handled separately.
-        preview.value = (product.images || []).map(img => {
-            const path = img.image_path;
-
-            return {
-                file: null,
-                url: path ? makeImg(path) : '',   // make full URL
-                name: path ? path.split('/').pop() : 'Image'
-            };
-        });
-    }catch(err){
-        console.error('Failed to fetch product details:', err)
-        errorMsg.value = 'Failed to load product details.'
-    }finally{
-        loading.value = false;
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const preview = ref([])
+const active = ref('dashboard')
+const isDark = ref(false)
+const sidebarOpen = ref(false)
 const isDragOver = ref(false)
+const preview = ref([])
 
-//  Image Handling
-function setFile(file) {
-    if (!file.type?.startsWith("image/")) return;
-    form.images.push(file);
-    preview.value.push({
-        file,
-        url: URL.createObjectURL(file),
-    });
-}
 
-function handleImage(e) {
-    const files = Array.from(e.target.files || []);
-    files.forEach((file) => setFile(file));
-}
 
-function onDrop(e) {
-    isDragOver.value = false;
-    const files = Array.from(e.dataTransfer?.files || []);
-    files.forEach((file) => setFile(file));
-}
 
-function onDragOver(e){
-    e.preventDefault()
-    isDragOver.value = true
-}
 
-function onDragLeave(){
-    isDragOver.value = false
-}
 
-function removeImage(idx) {
-    form.images.splice(idx, 1);
-    preview.value.splice(idx, 1);
-}
 
 
 
@@ -404,108 +340,18 @@ function removeImage(idx) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// get category
-const categories = ref([]);
-async function fetchCategories(){
-    try{
-        const res = await api.get('/products/get-categories')
-        categories.value = res.data.data;
-    }catch(err){
-        console.error('Failed to fetch categories:', err)
-    }
-}
-
-
-
-
-
-// get subcategory
-const subcategories = ref([]);
-async function fetchSubCategories(){
-    try{
-        const res = await api.get('/products/get-subcategories')
-        subcategories.value = res.data.data;
-    }catch(err){
-        console.error('Failed to fetch subcategories:', err)
-    }
-}
-
-// filter subcategories based on selected category
-const filteredSubCategories = computed(() => {
-    if(!form.category) return [];
-    return subcategories.value.filter(sub => sub.category_id === form.category)
-})
-
-
-
-
-
-// get brand
-const brands = ref([]);
-async function fetchBrands(){
-    try{
-        const res = await api.get('/products/get-brands')
-        brands.value = res.data.data;
-    }catch(err){
-        console.error('Failed to fetch brands:', err)
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function resetErrorAndLoading() {
-    loading.value = true;
-    errorMsg.value = "";
-}
-
-// Initial state object for reset purpose
+// --- INITIAL FORM ---
 const initialForm = {
+    id: null,
     name: '',
     sku: '',
     category: '',
     subcategory: '',
     brand: '',
-    price: '',
-    discount_price: '',
-    stock_quantity: '',
-    min_stock: '',
-    images: [],       // for uploaded files
-    variants: [],
+    price: 0,
+    discount_price: 0,
+    stock_quantity: 0,
+    min_stock: 0,
     summary: '',
     description: '',
     slug: '',
@@ -514,100 +360,82 @@ const initialForm = {
     is_active: true,
     title: '',
     keywords: '',
-    meta_description: ''
+    meta_title: '',
+    meta_keywords: '',
+    meta_description: '',
+    variants: [],
+    images: []
 }
 
-// reactive form
 const form = reactive({ ...initialForm })
 
-// reset function
+// --- RESET FORM ---
 function resetForm() {
-    // reset all fields
     Object.keys(initialForm).forEach(key => {
         form[key] = Array.isArray(initialForm[key]) ? [] : initialForm[key]
     })
-
-    // reset preview and errors
     preview.value = []
     Object.keys(errors).forEach(key => delete errors[key])
-
-    // reset success/error messages
     successMsg.value = ''
     errorMsg.value = ''
 }
 
-// add variant function
-function addVariant() {
-    form.variants.push({
-        color: '',
-        size: '',
-        stock: 0,
-        price: form.price || 0,
-    });
-}
-// remove variant function
-function removeVariant(index) {
-    form.variants.splice(index, 1);
-}
 
-/* Submit */
-async function submit(){
-    resetErrorAndLoading();
 
-    try{
-        const fd = new FormData()
 
-        console.log("Submitted", fd);
 
-        // normal fields
-        fd.append('name', form.name);
-        fd.append('sku', form.sku);
-        fd.append('category', form.category);
-        fd.append('subcategory', form.subcategory);
-        fd.append('brand', form.brand);
-        fd.append('price', form.price);
-        fd.append('discount_price', form.discount_price || 0);
-        fd.append('stock_quantity', form.stock_quantity);
-        fd.append('min_stock', form.min_stock || 0);
 
-        fd.append('summary', form.summary || '');
-        fd.append('description', form.description || '');
-        fd.append('slug', form.slug || '');
 
-        fd.append('title', form.title || '');
-        fd.append('keywords', form.keywords || '');
-        fd.append('meta_description', form.meta_description || '');
 
-        fd.append('is_featured', form.is_featured ? 1 : 0);
-        fd.append('is_on_sale', form.is_on_sale ? 1 : 0);
-        fd.append('is_active', form.is_active ? 1 : 0);
 
-        // variants FIX
-        form.variants.forEach((variant, i) => {
-            fd.append(`variants[${i}][color]`, variant.color || '');
-            fd.append(`variants[${i}][size]`, variant.size || '');
-            fd.append(`variants[${i}][price]`, variant.price || 0);
-            fd.append(`variants[${i}][stock]`, variant.stock || 0);
+
+
+
+
+
+// --- FETCH PRODUCT ---
+async function fetchProduct() {
+    loading.value = true
+    try {
+        const res = await api.get(`/products/${route.params.slug}`)
+        const product = res.data.data
+
+        Object.assign(form, {
+        id: product.id,
+        name: product.name,
+        sku: product.sku,
+        category: product.category_id,
+        subcategory: product.subcategory_id,
+        brand: product.brand_id,
+        price: product.price,
+        discount_price: product.discount_price,
+        stock_quantity: product.stock_quantity,
+        min_stock: product.min_stock,
+        summary: product.summary,
+        description: product.description,
+        slug: product.slug,
+        is_featured: !!product.is_featured,
+        is_on_sale: !!product.is_on_sale,
+        is_active: !!product.is_active,
+        title: product.title,
+        keywords: product.keywords,
+        meta_title: product.meta_title,
+        meta_keywords: product.meta_keywords,
+        meta_description: product.meta_description,
+        variants: product.variants || []
         })
 
-        // images FIX
-        form.images.forEach(file => {
-            fd.append('images[]', file);
-        });
+        // Preview images
+        preview.value = (product.images || []).map(img => ({
+        file: null,
+        url: img.image_path ? makeImg(img.image_path) : '',
+        name: img.image_path ? img.image_path.split('/').pop() : 'Image'
+        }))
 
-        const res = await api.post('/products/create', fd, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        resetForm();
-        successMsg.value = res.data.message || 'Product created successfully!';
-        router.push('/create-product')
-
-    }catch(err){
-        if(err.response?.data?.errors){
-            Object.assign(errors, err.response.data.errors)
-        }
-        errorMsg.value = err.response?.data?.message || 'Failed to create product.'
-    }finally{
+    } catch(err) {
+        console.error(err)
+        errorMsg.value = 'Failed to load product details.'
+    } finally {
         loading.value = false
     }
 }
@@ -624,62 +452,215 @@ async function submit(){
 
 
 
+// --- FETCH CATEGORIES / SUBCATEGORIES / BRANDS ---
+const categories = ref([])
+const subcategories = ref([])
+const brands = ref([])
 
-
-
-
-
-
-
-
-
-
-
-
-// dark and light mode
-
-const isDark = ref(false);
-const sidebarOpen = ref(false);
-
-function applyTheme(dark) {
-    isDark.value = dark;   // VERY IMPORTANT
-    document.documentElement.classList.toggle("dark", dark);
-    localStorage.setItem("theme", dark ? "dark" : "light");
+async function fetchCategories() {
+    try {
+        const res = await api.get('/products/get-categories')
+        categories.value = res.data.data
+    } catch(err) { console.error(err) }
 }
 
-function toggleTheme() {
-    applyTheme(!isDark.value);
+async function fetchSubCategories() {
+    try {
+        const res = await api.get('/products/get-subcategories')
+        subcategories.value = res.data.data
+    } catch(err) { console.error(err) }
 }
 
-function onSearch(q) {
-    console.log("search:", q);
+async function fetchBrands() {
+    try {
+        const res = await api.get('/products/get-brands')
+        brands.value = res.data.data
+    } catch(err) { console.error(err) }
+}
+
+const filteredSubCategories = computed(() => {
+    if(!form.category) return []
+    return subcategories.value.filter(sub => sub.category_id === form.category)
+})
+
+
+
+
+
+
+
+
+
+
+
+
+// --- VARIANTS ---
+function addVariant() {
+    form.variants.push({ color: '', size: '', price: form.price || 0, stock: 0 })
+}
+function removeVariant(i) { form.variants.splice(i, 1) }
+
+// --- IMAGE HANDLING ---
+function setFile(file) {
+    if(!file.type.startsWith('image/')) return
+    form.images.push(file)
+    preview.value.push({ file, url: URL.createObjectURL(file) })
+}
+
+function handleImage(e) { Array.from(e.target.files).forEach(setFile) }
+function onDrop(e) { isDragOver.value = false; Array.from(e.dataTransfer.files).forEach(setFile) }
+function onDragOver(e){ e.preventDefault(); isDragOver.value = true }
+function onDragLeave(){ isDragOver.value = false }
+function removeImage(idx){ form.images.splice(idx,1); preview.value.splice(idx,1) }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --- SUBMIT FORM ---
+async function submitEdit() {
+    loading.value = true
+    errorMsg.value = ''
+    Object.keys(errors).forEach(k => delete errors[k])
+
+    if(!form.id){ errorMsg.value = 'Product ID missing'; loading.value=false; return }
+
+    try {
+        const fd = new FormData()
+        
+        // Basic fields
+        fd.append('name', form.name)
+        fd.append('sku', form.sku)
+        fd.append('category', form.category)
+        fd.append('subcategory', form.subcategory)
+        fd.append('brand', form.brand)
+        fd.append('price', form.price || 0)
+        fd.append('discount_price', form.discount_price || 0)
+        fd.append('stock_quantity', form.stock_quantity || 0)
+        fd.append('min_stock', form.min_stock || 0)
+        fd.append('summary', form.summary || '')
+        fd.append('description', form.description || '')
+        fd.append('slug', form.slug || '')
+        fd.append('title', form.title || '')
+        fd.append('keywords', form.keywords || '')
+        fd.append('meta_title', form.meta_title || '')
+        fd.append('meta_keywords', form.meta_keywords || '')
+        fd.append('meta_description', form.meta_description || '')
+        fd.append('is_featured', form.is_featured ? 1 : 0)
+        fd.append('is_on_sale', form.is_on_sale ? 1 : 0)
+        fd.append('is_active', form.is_active ? 1 : 0)
+        
+
+        // Variants
+        form.variants.forEach((v,i)=>{
+            fd.append(`variants[${i}][color]`, v.color || '')
+            fd.append(`variants[${i}][size]`, v.size || '')
+            fd.append(`variants[${i}][price]`, v.price || 0)
+            fd.append(`variants[${i}][stock]`, v.stock || 0)
+        })
+
+        // Images
+        form.images.forEach(f => fd.append('images[]', f))
+
+        const res = await api.post(`/products/update/${form.id}`, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        successMsg.value = res.data.message || 'Product updated successfully!'
+        setTimeout(() => router.back(), 800)
+
+    } catch(err) {
+        if(err.response?.data?.errors) Object.assign(errors, err.response.data.errors)
+        errorMsg.value = err.response?.data?.message || 'Failed to update product.'
+    } finally { loading.value = false }
 }
 
 
-/* ESC to close drawer */
-onMounted(() => {
-    fetchProduct();
-
-    
-    fetchCategories();
-    fetchSubCategories();
-    fetchBrands();
 
 
 
 
 
-    window.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") sidebarOpen.value = false;
-    });
-    const saved = localStorage.getItem("theme");
-    if (saved === "dark") applyTheme(true);
-    else if (saved === "light") applyTheme(false);
-    else {
-        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        applyTheme(systemDark);
+
+
+
+
+
+
+// --- DELETE ---
+function handleDelete() {
+    if(confirm("Are you sure you want to delete this product?")){
+        console.log("Product DELETED successfully.")
     }
-});
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --- THEME ---
+function applyTheme(dark){
+    isDark.value = dark
+    document.documentElement.classList.toggle("dark", dark)
+    localStorage.setItem("theme", dark ? "dark":"light")
+}
+function toggleTheme(){ applyTheme(!isDark.value) }
+
+// --- SEARCH ---
+function onSearch(q){ console.log("search:", q) }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --- INIT ---
+onMounted(() => {
+    fetchProduct()
+    fetchCategories()
+    fetchSubCategories()
+    fetchBrands()
+
+    window.addEventListener("keydown", e => { if(e.key==='Escape') sidebarOpen.value=false })
+
+    const saved = localStorage.getItem("theme")
+    if(saved==='dark') applyTheme(true)
+    else if(saved==='light') applyTheme(false)
+    else applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches)
+})
 </script>
 
 <style scoped>

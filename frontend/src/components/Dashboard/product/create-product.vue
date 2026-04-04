@@ -241,7 +241,7 @@
                                 <!-- Preview -->
                                 <div v-if="preview.length" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 <div v-for="(img, idx) in preview" :key="idx" class="relative">
-                                    <img :src="img.url" class="h-28 w-28 rounded-xl border object-cover"/>
+                                    <img :src="img.url" class="h-full w-full rounded-xl border object-cover"/>
                                     <button type="button" class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700" @click="removeImage(idx)">
                                     ✕
                                     </button>

@@ -46,6 +46,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/get-brands', [ProductController::class, 'getBrand']);
 
         // ❗ LAST: dynamic route for product details, must be at the end of all product routes
+        Route::post('/update/{id}', [ProductController::class, 'edit'])->where('id', '[0-9]+');
         Route::get('/{slug}', [ProductController::class, 'show'])->where('slug', '[a-zA-Z0-9\-]+');
     });
 });
