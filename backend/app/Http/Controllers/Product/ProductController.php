@@ -143,7 +143,8 @@ class ProductController extends Controller
             }
 
             // save product images and get their paths
-            $this->storeProductImages($request, $product->id, $user);
+            $images = $this->storeProductImages($request, $product->id, $user);
+            $product->images = $images;
 
             DB::commit();
 
@@ -163,6 +164,7 @@ class ProductController extends Controller
 
     private function storeProductImages(Request $request, $productId, $user)
     {
+        $savedImages = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
                 $path = $image->store("products/{$user->vendor_id}", 'public');
@@ -301,6 +303,50 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => "Product can not updated. Error: " . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function delete($id){
+        DB::beginTransaction();
+
+        try {
+            $product = Product::with(['images', 'variants'])->findOrFail($id);
+
+            // Delete images from storage + DB
+            foreach ($product->images as $img) {
+                if ($img->image_path && Storage::disk('public')->exists($img->image_path)) {
+                    Storage::disk('public')->delete($img->image_path);
+                }
+                $img->delete(); // DB
+            }
+
+            // Delete variants
+            foreach ($product->variants as $variant) {
+                $variant->delete();
+            }
+
+            // Delete product
+            $product->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product deleted successfully.'
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found.'
+            ], 404);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Delete failed. ' . $e->getMessage()
             ], 500);
         }
     }

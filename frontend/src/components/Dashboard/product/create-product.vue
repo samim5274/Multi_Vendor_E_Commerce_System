@@ -281,12 +281,12 @@ import Message from '../../Message/message.vue'
 
 const router = useRouter()
 
+const successMsg = ref('')
+const errorMsg = ref('')
+
 const loading = ref(false)
 const errors = reactive({})
 
-
-const successMsg = ref('');
-const errorMsg = ref('');
 
 const active = ref('dashboard');
 
@@ -453,8 +453,6 @@ async function submit(){
 
     try{
         const fd = new FormData()
-
-        console.log("Submitted", fd);
 
         // normal fields
         fd.append('name', form.name);

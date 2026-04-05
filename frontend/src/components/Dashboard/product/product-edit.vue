@@ -268,8 +268,9 @@
                                     type="button" 
                                     @click="handleDelete"
                                     class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 transition-all font-medium text-sm">
-                                    <i class="fa-solid fa-trash-can text-xs"></i>
-                                    Delete
+                                    <i v-if="loading" class="fa-solid fa-circle-notch animate-spin"></i>
+                                    <i v-else class="fa-solid fa-trash-can text-xs"></i>
+                                    {{ loading ? 'Deleting...' : 'Delete' }}
                                 </button>
                             </div>
 
@@ -290,7 +291,7 @@
                                     <i v-if="loading" class="fa-solid fa-circle-notch animate-spin"></i>
                                     <i v-else class="fa-solid fa-check"></i>
                                     
-                                    {{ loading ? 'Saving...' : 'Update Changes' }}
+                                    {{ loading ? 'Updating...' : 'Update Changes' }}
                                 </button>
                             </div>
                         </div>
@@ -501,17 +502,43 @@ function addVariant() {
 function removeVariant(i) { form.variants.splice(i, 1) }
 
 // --- IMAGE HANDLING ---
+form: { images: []} // array of { file?, id?, url? }
+preview: [],
+
 function setFile(file) {
-    if(!file.type.startsWith('image/')) return
-    form.images.push(file)
-    preview.value.push({ file, url: URL.createObjectURL(file) })
+    if(!file.type.startsWith('image/')) return;
+    form.images.push({ file, url: URL.createObjectURL(file) });
+    preview.push({ file, url: URL.createObjectURL(file) });
 }
 
-function handleImage(e) { Array.from(e.target.files).forEach(setFile) }
-function onDrop(e) { isDragOver.value = false; Array.from(e.dataTransfer.files).forEach(setFile) }
-function onDragOver(e){ e.preventDefault(); isDragOver.value = true }
-function onDragLeave(){ isDragOver.value = false }
-function removeImage(idx){ form.images.splice(idx,1); preview.value.splice(idx,1) }
+function handleImage(e) {
+    Array.from(e.target.files).forEach(setFile);
+}
+
+function onDrop(e){
+    isDragOver.value = false;
+    Array.from(e.dataTransfer.files).forEach(setFile);
+}
+
+function onDragOver(e){ e.preventDefault(); isDragOver.value = true; }
+function onDragLeave(){ isDragOver.value = false; }
+
+// Remove image
+async function removeImage(idx) {
+    const img = form.images[idx];
+    
+    // If it's already saved in DB, call delete API
+    if(img.id){
+        try {
+            await api.delete(`/product-images/${img.id}`);
+        } catch(e){
+            console.error('Failed to delete image:', e);
+        }
+    }
+
+    form.images.splice(idx,1);
+    preview.splice(idx,1);
+}
 
 
 
@@ -596,9 +623,28 @@ async function submitEdit() {
 
 
 // --- DELETE ---
-function handleDelete() {
+async function handleDelete() {
+    if (!form.id) {
+        errorMsg.value = "Product ID missing";
+        return;
+    }
+
     if(confirm("Are you sure you want to delete this product?")){
-        console.log("Product DELETED successfully.")
+        loading.value = true;
+        errorMsg.value = '';
+
+        try{
+            const res = await api.delete(`/products/delete/${form.id}`);
+            successMsg.value = res.data?.message || "Product deleted successfully.";
+            setTimeout(() => {
+                router.push('/products');
+            }, 1000);
+        }catch(err) {
+            if(err.response?.data?.errors) Object.assign(errors, err.response.data.errors)
+            errorMsg.value = err.response?.data?.message || 'Delete failed.';
+        } finally { 
+            loading.value = false;
+        }
     }
 }
 
