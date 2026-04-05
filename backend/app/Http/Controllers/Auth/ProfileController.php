@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 use App\Models\User;
+use App\Models\Vendor;
 
 class ProfileController extends Controller
 {
@@ -78,4 +79,5 @@ class ProfileController extends Controller
             'message' => 'Password updated.',
         ]);
     }
+
 }

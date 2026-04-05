@@ -1,0 +1,25 @@
+vendor model
+protected $fillable = [
+    'shop_name',--------------------
+    'shop_slug',
+    'shop_logo',--------------------
+    'shop_description',-------------
+    'vendor_status',
+    'is_active',
+    'wallet_balance',
+    'commission_rate',
+    'tax_id',
+    'business_license',
+    'business_document',
+    'email',-------------------------
+    'phone'--------------------------
+    ,'address',----------------------
+    'city',--------------------------
+    'state',-------------------------
+    'country',-----------------------
+    'postal_code',-------------------
+    'featured',
+    'rating',
+    'total_products',
+    'deleted_at',
+];

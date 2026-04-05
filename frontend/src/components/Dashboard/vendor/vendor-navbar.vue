@@ -148,17 +148,17 @@
                 </button>
               </li>
 
-              <li>
+              <!-- <li>
                 <button
                   class="w-full px-4 py-2 text-sm text-left transition
                          hover:bg-white dark:hover:bg-white/10"
-                  :class="activeKey === 'complainList'
+                  :class="activeKey === 'setting'
                     ? 'bg-white text-slate-900 font-medium dark:bg-white/10 dark:text-white'
                     : 'text-slate-700 dark:text-slate-200/90'"
-                  @click="pick('complainList')">
+                  @click="pick('setting')">
                   Settings
                 </button>
-              </li>
+              </li> -->
             </ul>
           </div>
         </li>
@@ -169,10 +169,10 @@
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition
                    focus:outline-none focus:ring-2 focus:ring-slate-500/40
                    hover:bg-slate-100 dark:hover:bg-white/10"
-            :class="activeKey === 'setting'
+            :class="activeKey === 'order'
               ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-white/10 dark:text-white dark:ring-white/10'
               : ''"
-            @click="pick('setting')">
+            @click="pick('order')">
             <span class="opacity-90 w-5 text-center">
               <i class="fa-solid fa-cart-arrow-down"></i>
             </span>
@@ -186,10 +186,10 @@
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition
                    focus:outline-none focus:ring-2 focus:ring-slate-500/40
                    hover:bg-slate-100 dark:hover:bg-white/10"
-            :class="activeKey === 'setting'
+            :class="activeKey === 'delivery'
               ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-white/10 dark:text-white dark:ring-white/10'
               : ''"
-            @click="pick('setting')">
+            @click="pick('delivery')">
             <span class="opacity-90 w-5 text-center">
               <i class="fa-solid fa-truck-fast"></i>
             </span>
@@ -203,10 +203,10 @@
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition
                    focus:outline-none focus:ring-2 focus:ring-slate-500/40
                    hover:bg-slate-100 dark:hover:bg-white/10"
-            :class="activeKey === 'setting'
+            :class="activeKey === 'payment'
               ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-white/10 dark:text-white dark:ring-white/10'
               : ''"
-            @click="pick('setting')">
+            @click="pick('payment')">
             <span class="opacity-90 w-5 text-center">
               <i class="fa-solid fa-credit-card"></i>
             </span>
@@ -272,19 +272,19 @@ const pagesOpen = ref(false);
 const routeMap = {
   dashboard: "/vendor/dashboard",
   profile: "/vendor/profile",
-  create: "/create-product",
   products: "/products",
-  setting: "/setting",
+  create: "/create-product",
+  setting: "/vendor/setting",
   logout: "/admin-login",
 };
 
 const routeMatch = [
+  { key: "dashboard", prefixes: ["/vendor/dashboard"] },
+  { key: "profile", prefixes: ["/vendor/profile"] },
   { key: "products", prefixes: ["/products", "/product-edit"] },
   { key: "create", prefixes: ["/create-product"] },
-  { key: "dashboard", prefixes: ["/vendor/dashboard"] },
+  { key: "setting", prefixes: ["/vendor/setting"] },
   { key: "logout", prefixes: ["/logout"] },
-  { key: "profile", prefixes: ["/vendor/profile"] },
-  { key: "setting", prefixes: ["/setting"] },
 ];
 
 const activeKey = computed(() => {

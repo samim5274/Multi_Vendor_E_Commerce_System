@@ -24,6 +24,7 @@ import SuperAdminDashboard from '../components/Dashboard/super_admin/super-admin
 // vendor Routes
 import VendorDashboard from '../components/Dashboard/vendor/vendor-dashboard.vue'
 import VendorProfile from '../components/Dashboard/vendor/vendor-profile.vue'
+import vendorSetting from '../components/Dashboard/vendor/vendor-setting.vue';
 
 
 
@@ -118,6 +119,7 @@ const routes = [
   // Vendor Routes
   { path: '/vendor/dashboard', component: VendorDashboard, meta: { requiresAuth: true, roles: ['vendor_owner', 'vendor_staff'], title: "Vendor Dashboard" } },
   { path: '/vendor/profile', component: VendorProfile, meta: { requiresAuth: true, roles: ['vendor_owner', 'vendor_staff'], title: "Vendor Profile" } },
+  { path: '/vendor/setting', component: vendorSetting, meta: { requiresAuth: true, roles: ['vendor_owner', 'vendor_staff'], title: "Vendor Setting" }},
 
   // Product Routes
   { path: '/create-product', component: CreateProduct, meta: { requiresAuth: true, roles: ['vendor_owner', 'vendor_staff'], title: "Create Product" } },

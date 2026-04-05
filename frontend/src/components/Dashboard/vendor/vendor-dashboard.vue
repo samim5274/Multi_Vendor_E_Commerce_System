@@ -44,7 +44,8 @@ const active = ref("dashboard");
 
 const router = useRouter();
 
-
+const successMsg = ref('');
+const errorMsg = ref('');
 
 
 
