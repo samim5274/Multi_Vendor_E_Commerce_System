@@ -502,43 +502,17 @@ function addVariant() {
 function removeVariant(i) { form.variants.splice(i, 1) }
 
 // --- IMAGE HANDLING ---
-form: { images: []} // array of { file?, id?, url? }
-preview: [],
-
 function setFile(file) {
-    if(!file.type.startsWith('image/')) return;
-    form.images.push({ file, url: URL.createObjectURL(file) });
-    preview.push({ file, url: URL.createObjectURL(file) });
+    if(!file.type.startsWith('image/')) return
+    form.images.push(file)
+    preview.value.push({ file, url: URL.createObjectURL(file) })
 }
 
-function handleImage(e) {
-    Array.from(e.target.files).forEach(setFile);
-}
-
-function onDrop(e){
-    isDragOver.value = false;
-    Array.from(e.dataTransfer.files).forEach(setFile);
-}
-
-function onDragOver(e){ e.preventDefault(); isDragOver.value = true; }
-function onDragLeave(){ isDragOver.value = false; }
-
-// Remove image
-async function removeImage(idx) {
-    const img = form.images[idx];
-    
-    // If it's already saved in DB, call delete API
-    if(img.id){
-        try {
-            await api.delete(`/product-images/${img.id}`);
-        } catch(e){
-            console.error('Failed to delete image:', e);
-        }
-    }
-
-    form.images.splice(idx,1);
-    preview.splice(idx,1);
-}
+function handleImage(e) { Array.from(e.target.files).forEach(setFile) }
+function onDrop(e) { isDragOver.value = false; Array.from(e.dataTransfer.files).forEach(setFile) }
+function onDragOver(e){ e.preventDefault(); isDragOver.value = true }
+function onDragLeave(){ isDragOver.value = false }
+function removeImage(idx){ form.images.splice(idx,1); preview.value.splice(idx,1) }
 
 
 

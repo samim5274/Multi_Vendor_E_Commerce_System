@@ -164,7 +164,6 @@ class ProductController extends Controller
 
     private function storeProductImages(Request $request, $productId, $user)
     {
-        $savedImages = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $image) {
                 $path = $image->store("products/{$user->vendor_id}", 'public');
